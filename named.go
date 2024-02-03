@@ -6,13 +6,15 @@ import (
 )
 
 // Register registers an additional color.
-func Register(n NamedColor, c color.Color) {
-	colors[n] = color.RGBAModel.Convert(c).(color.RGBA)
+func Register(n NamedColor, clr color.Color) {
+	c := color.RGBAModel.Convert(clr).(color.RGBA)
+	colors[n] = c
+	lookup[mapKey(c.R, c.G, c.B, c.A)] = n
 }
 
 // RegisterName registers an additional color.
-func RegisterName(s string, c color.Color) {
-	Register(NamedColor(s), c)
+func RegisterName(s string, clr color.Color) {
+	Register(NamedColor(s), clr)
 }
 
 // Map returns a map of all named colors.

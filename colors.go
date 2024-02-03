@@ -17,7 +17,7 @@ type Color struct {
 	NamedColor NamedColor
 }
 
-// New creates a new color, and adds the named color value if applicable.
+// New creates a new color, and looks up the named color.
 func New(r, g, b, a uint8) Color {
 	return Color{r, g, b, a, lookup[mapKey(r, g, b, a)]}
 }
@@ -121,46 +121,16 @@ func FromHex(s string) (Color, bool) {
 	return fromRE(s, hexRE, parseHex)
 }
 
-// fromRE parses all regexp matches with f.
-func fromRE(s string, re *regexp.Regexp, f func(s string) (uint8, bool)) (Color, bool) {
-	m := re.FindStringSubmatch(s)
-	n := len(m)
-	if n != 4 && n != 5 {
-		return Color{}, false
-	}
-	var c Color
-	var ok bool
-	if c.R, ok = f(m[1]); !ok {
-		return Color{}, false
-	}
-	if c.G, ok = f(m[2]); !ok {
-		return Color{}, false
-	}
-	if c.B, ok = f(m[3]); !ok {
-		return Color{}, false
-	}
-	switch {
-	case n == 5 && m[4] != "":
-		if c.A, ok = f(m[4]); !ok {
-			return Color{}, false
-		}
-	default:
-		c.A = 0xff
-	}
-	c.NamedColor = lookup[mapKey(c.R, c.G, c.B, c.A)]
-	return c, true
+// UnmarshalText satisfies the [encoding.TextUnmarshaler] interface.
+func (clr *Color) UnmarshalText(text []byte) error {
+	var err error
+	*clr, err = Parse(string(text))
+	return err
 }
 
-// parseDec parses a decimal number in s.
-func parseDec(s string) (uint8, bool) {
-	u, err := strconv.ParseUint(s, 10, 8)
-	return uint8(u), err == nil
-}
-
-// parseHex parses a hex number in s.
-func parseHex(s string) (uint8, bool) {
-	u, err := strconv.ParseUint(s, 16, 8)
-	return uint8(u), err == nil
+// MarshalText satisfies the [encoding.TextMarshaler] interface.
+func (clr *Color) MarshalText() ([]byte, error) {
+	return []byte(clr.AsText()), nil
 }
 
 // Name returns the color's name.
@@ -208,10 +178,10 @@ func (c Color) Format(f fmt.State, verb rune) {
 		if f.Flag('#') {
 			_, _ = fmt.Fprintf(f, "{R:%d G:%d B:%d A:%d}", c.R, c.G, c.B, c.A)
 		} else {
-			_, _ = f.Write([]byte(c.AsString()))
+			_, _ = f.Write([]byte(c.AsText()))
 		}
 	case 's':
-		_, _ = f.Write([]byte(c.AsString()))
+		_, _ = f.Write([]byte(c.AsText()))
 	case 'd':
 		_, _ = f.Write([]byte(c.AsRGB()))
 	case 'a':
@@ -225,12 +195,12 @@ func (c Color) Format(f fmt.State, verb rune) {
 	}
 }
 
-// AsString returns a string representation of the color.
-func (c Color) AsString() string {
+// AsText returns a string representation of the color.
+func (c Color) AsText() string {
 	if c.NamedColor != "" {
 		return string(c.NamedColor)
 	}
-	return c.AsShortWeb()
+	return c.AsWebShort()
 }
 
 // AsRGB returns the color formatted as a rgb string, ex: rgb(255,255,255).
@@ -259,8 +229,8 @@ func (c Color) AsWeb() string {
 	return fmt.Sprintf("#%02x%02x%02x", c.R, c.G, c.B)
 }
 
-// AsShortWeb returns the shortest possible formatted web string, ex: #fff.
-func (c Color) AsShortWeb() string {
+// AsWebShort returns the shortest possible formatted web string, ex: #fff.
+func (c Color) AsWebShort() string {
 	if c.A != 0xff {
 		return fmt.Sprintf("#%02x%02x%02x%02x", c.R, c.G, c.B, c.A)
 	}
@@ -270,13 +240,47 @@ func (c Color) AsShortWeb() string {
 	return fmt.Sprintf("#%02x%02x%02x", c.R, c.G, c.B)
 }
 
-// regexps.
-var (
-	rgbRE  = regexp.MustCompile(`(?i)^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$`)
-	rgbaRE = regexp.MustCompile(`(?i)^rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$`)
-	hexRE  = regexp.MustCompile(`(?i)^hex\(\s*([0-9a-f]{1,2})\s*,\s*([0-9a-f]{1,2})\s*,\s*([0-9a-f]{1,2})\s*(?:,\s*([0-9a-f]{1,2})\s*)?\)$`)
-	// webRE  = regexp.MustCompile(`(?i)^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})?$`)
-)
+// Pflag returns a [Pflag] wrapping the color, that can be used with various
+// command-line packages, such as [cobra], and satisfies the [pflag.Value]
+// interface.
+//
+// [cobra]: https://github.com/spf13/cobra
+// [pflag.Value]: https://pkg.go.dev/github.com/spf13/pflag#Value
+func (c *Color) Pflag() Pflag {
+	return Pflag{c}
+}
+
+// Pflag wraps a color, for use with command-line packages, such as [cobra].
+// Satisfies the [pflag.Value] interface.
+//
+// [cobra]: https://github.com/spf13/cobra
+// [pflag.Value]: https://pkg.go.dev/github.com/spf13/pflag#Value
+type Pflag struct {
+	c *Color
+}
+
+// String satisfies the [pflag.Value] interface.
+//
+// [pflag.Value]: https://pkg.go.dev/github.com/spf13/pflag#Value
+func (f Pflag) String() string {
+	return f.c.AsText()
+}
+
+// Set satisfies the [pflag.Value] interface.
+//
+// [pflag.Value]: https://pkg.go.dev/github.com/spf13/pflag#Value
+func (f Pflag) Set(s string) error {
+	var err error
+	*f.c, err = Parse(s)
+	return err
+}
+
+// Type satisfies the [pflag.Value] interface.
+//
+// [pflag.Value]: https://pkg.go.dev/github.com/spf13/pflag#Value
+func (Pflag) Type() string {
+	return "color"
+}
 
 // Error is a error.
 type Error string
@@ -289,4 +293,54 @@ func (err Error) Error() string {
 const (
 	// ErrInvalidColor is invalid color error.
 	ErrInvalidColor Error = "invalid color"
+)
+
+// fromRE parses all regexp matches with f.
+func fromRE(s string, re *regexp.Regexp, f func(s string) (uint8, bool)) (Color, bool) {
+	m := re.FindStringSubmatch(s)
+	n := len(m)
+	if n != 4 && n != 5 {
+		return Color{}, false
+	}
+	var c Color
+	var ok bool
+	if c.R, ok = f(m[1]); !ok {
+		return Color{}, false
+	}
+	if c.G, ok = f(m[2]); !ok {
+		return Color{}, false
+	}
+	if c.B, ok = f(m[3]); !ok {
+		return Color{}, false
+	}
+	switch {
+	case n == 5 && m[4] != "":
+		if c.A, ok = f(m[4]); !ok {
+			return Color{}, false
+		}
+	default:
+		c.A = 0xff
+	}
+	c.NamedColor = lookup[mapKey(c.R, c.G, c.B, c.A)]
+	return c, true
+}
+
+// parseDec parses a decimal number in s.
+func parseDec(s string) (uint8, bool) {
+	u, err := strconv.ParseUint(s, 10, 8)
+	return uint8(u), err == nil
+}
+
+// parseHex parses a hex number in s.
+func parseHex(s string) (uint8, bool) {
+	u, err := strconv.ParseUint(s, 16, 8)
+	return uint8(u), err == nil
+}
+
+// regexps.
+var (
+	rgbRE  = regexp.MustCompile(`(?i)^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$`)
+	rgbaRE = regexp.MustCompile(`(?i)^rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$`)
+	hexRE  = regexp.MustCompile(`(?i)^hex\(\s*([0-9a-f]{1,2})\s*,\s*([0-9a-f]{1,2})\s*,\s*([0-9a-f]{1,2})\s*(?:,\s*([0-9a-f]{1,2})\s*)?\)$`)
+	// webRE  = regexp.MustCompile(`(?i)^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})?$`)
 )
