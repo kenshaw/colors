@@ -193,6 +193,10 @@ func testInverse(t *testing.T, name string, exp Color) {
 		func() string {
 			return fmt.Sprintf("%#v", exp)
 		},
+		func() string {
+			c := color.NRGBAModel.Convert(exp).(color.NRGBA)
+			return fmt.Sprintf("nrgba{R:%d G:%d B:%d A:%d}", c.R, c.G, c.B, c.A)
+		},
 		exp.AsRGB,
 		exp.AsRGBA,
 		exp.AsHex,
@@ -203,9 +207,9 @@ func testInverse(t *testing.T, name string, exp Color) {
 		s := f()
 		t.Logf("%d: %q", i, s)
 		switch {
-		case i == 0:
+		case i < 2:
 			continue
-		case s == "" || (i == 1 && exp.A != 0xff):
+		case s == "" || (i == 2 && exp.A != 0xff):
 			t.Log("  skipping")
 			continue
 		}

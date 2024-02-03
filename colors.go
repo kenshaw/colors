@@ -167,7 +167,7 @@ func (c Color) Dark() bool {
 
 // Is returns true when the colors are equivalent.
 func (c Color) Is(clr color.Color) bool {
-	b := color.NRGBAModel.Convert(clr).(color.NRGBA)
+	b := color.RGBAModel.Convert(clr).(color.RGBA)
 	return c.R == b.R && c.G == b.G && c.B == b.B && c.A == b.A
 }
 
