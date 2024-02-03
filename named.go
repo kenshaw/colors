@@ -180,6 +180,7 @@ const (
 	Teal                 NamedColor = "teal"
 	Thistle              NamedColor = "thistle"
 	Tomato               NamedColor = "tomato"
+	Transparent          NamedColor = "transparent"
 	Turquoise            NamedColor = "turquoise"
 	Violet               NamedColor = "violet"
 	Wheat                NamedColor = "wheat"
@@ -353,6 +354,7 @@ var colors = map[NamedColor]color.RGBA{
 	Tan:                  {0xd2, 0xb4, 0x8c, 0xff}, // rgb(210, 180, 140)
 	Teal:                 {0x00, 0x80, 0x80, 0xff}, // rgb(0, 128, 128)
 	Thistle:              {0xd8, 0xbf, 0xd8, 0xff}, // rgb(216, 191, 216)
+	Transparent:          {0x00, 0x00, 0x00, 0x00}, // rgba(0,0,0,0)
 	Tomato:               {0xff, 0x63, 0x47, 0xff}, // rgb(255, 99, 71)
 	Turquoise:            {0x40, 0xe0, 0xd0, 0xff}, // rgb(64, 224, 208)
 	Violet:               {0xee, 0x82, 0xee, 0xff}, // rgb(238, 130, 238)

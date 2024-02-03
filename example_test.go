@@ -20,6 +20,7 @@ func Example() {
 		"rgba(26,33,80,22)",
 		"#cdcdcd80",
 		"#cdcdcdff",
+		"hex(0,0,0,0)",
 	} {
 		c, err := colors.Parse(s)
 		if err != nil {
@@ -39,4 +40,5 @@ func Example() {
 	// #1a215016
 	// #cdcdcd80
 	// #cdcdcd
+	// transparent
 }
