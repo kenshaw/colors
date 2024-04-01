@@ -122,15 +122,15 @@ func FromHex(s string) (Color, bool) {
 }
 
 // UnmarshalText satisfies the [encoding.TextUnmarshaler] interface.
-func (clr *Color) UnmarshalText(text []byte) error {
+func (c *Color) UnmarshalText(text []byte) error {
 	var err error
-	*clr, err = Parse(string(text))
+	*c, err = Parse(string(text))
 	return err
 }
 
 // MarshalText satisfies the [encoding.TextMarshaler] interface.
-func (clr *Color) MarshalText() ([]byte, error) {
-	return []byte(clr.AsText()), nil
+func (c *Color) MarshalText() ([]byte, error) {
+	return []byte(c.AsText()), nil
 }
 
 // Name returns the color's name.
@@ -176,7 +176,7 @@ func (c Color) Format(f fmt.State, verb rune) {
 	switch verb {
 	case 'v':
 		if f.Flag('#') {
-			_, _ = fmt.Fprintf(f, "{R:%d G:%d B:%d A:%d}", c.R, c.G, c.B, c.A)
+			_, _ = fmt.Fprintf(f, "{R:%d G:%d B:%d A:%d NamedColor:%s}", c.R, c.G, c.B, c.A, string(c.NamedColor))
 		} else {
 			_, _ = f.Write([]byte(c.AsText()))
 		}
@@ -290,6 +290,7 @@ func (err Error) Error() string {
 	return string(err)
 }
 
+// Errors.
 const (
 	// ErrInvalidColor is invalid color error.
 	ErrInvalidColor Error = "invalid color"

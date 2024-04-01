@@ -30,7 +30,7 @@ func TestParse(t *testing.T) {
 			"rgb(255,255,255)",
 			"rgba(255,255,255,255)",
 			"hex(ff,ff,ff)",
-			"hex(ff,ff,ff,ff)",
+			"hex( ff , ff, ff, ff)",
 			"#ffffff",
 			"#ffffffff",
 		}},
@@ -46,7 +46,7 @@ func TestParse(t *testing.T) {
 		{"lime", Lime, []string{
 			"lime",
 			"rgb(0,255,0)",
-			"rgba(0,255,0,255)",
+			"rgba( 0, 255, 0, 255)",
 			"hex(0,ff,0)",
 			"hex(0,ff,0,ff)",
 			"#00ff00",
@@ -55,7 +55,7 @@ func TestParse(t *testing.T) {
 		{"blue", Blue, []string{
 			"BLUE",
 			"RGB(0,0,255)",
-			"RGBA(0,0,255,255)",
+			" RGBA( 0, 0,255,255)",
 			"HEX(0,0,FF)",
 			"HEX(0,0,FF,FF)",
 			"#0000FF",
@@ -80,6 +80,27 @@ func TestParse(t *testing.T) {
 			"#CD5c5cfF",
 		}},
 	}
+	m := allColors(false)
+	var keys []string
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, key := range keys {
+		c := color.RGBAModel.Convert(m[key]).(color.RGBA)
+		v := []string{
+			key[strings.LastIndexByte(key, '/')+1:],
+			fmt.Sprintf("rgba( %d, %d, %d, %d )", c.R, c.G, c.B, c.A),
+			fmt.Sprintf("hex( %x, %x, %x, %x )", c.R, c.G, c.B, c.A),
+		}
+		tests = append(tests, struct {
+			name string
+			exp  color.Color
+			v    []string
+		}{
+			key, c, v,
+		})
+	}
 	for _, tt := range tests {
 		test := tt
 		t.Run(test.name, func(t *testing.T) {
@@ -95,6 +116,9 @@ func TestParse(t *testing.T) {
 
 func testParse(t *testing.T, name, s string, exp color.Color) {
 	t.Helper()
+	if i := strings.LastIndexByte(name, '/'); i != 0 {
+		name = name[i+1:]
+	}
 	t.Logf("%s: %v", name, colors[NamedColor(name)])
 	c, err := Parse(s)
 	switch {
@@ -103,24 +127,26 @@ func testParse(t *testing.T, name, s string, exp color.Color) {
 	case !c.Is(exp):
 		t.Errorf("expected %v, got %v", exp, c)
 	}
+	t.Logf("color: %#v light: %t dark: %t", c, c.Light(), c.Dark())
 	var f func() string
-	switch {
-	case strings.Contains(s, "rgb("):
-		f = c.AsRGB
-	case strings.Contains(s, "rgba("):
-		f = c.AsRGBA
-	case strings.Contains(s, "hex("):
-		f = c.AsHex
-	case strings.Contains(s, "#"):
-		f = c.AsWeb
+	var n string
+	switch z := strings.ToLower(s); {
+	case strings.Contains(z, "rgb("):
+		n, f = "AsRGB", c.AsRGB
+	case strings.Contains(z, "rgba("):
+		n, f = "AsRGBA", c.AsRGBA
+	case strings.Contains(z, "hex("):
+		n, f = "AsHex", c.AsHex
+	case strings.Contains(z, "#"):
+		n, f = "AsWeb", c.AsWeb
 	case isNamedColor(s):
-		f = func() string {
+		n, f = "NamedColor", func() string {
 			return string(c.NamedColor)
 		}
 	default:
-		return
+		t.Fatalf("invalid test %q", s)
 	}
-	t.Logf("got: %s", f())
+	t.Logf("%s: %s", n, f())
 }
 
 func TestBad(t *testing.T) {
@@ -162,18 +188,7 @@ func TestBad(t *testing.T) {
 }
 
 func TestInverse(t *testing.T) {
-	z := MapString()
-	m := make(map[string]color.Color)
-	for k, v := range z {
-		m["named/"+k] = v
-	}
-
-	// additional tests
-	m["std/black"] = color.Black
-	m["std/white"] = color.White
-	m["std/transparent"] = color.Transparent
-	m["std/opaque"] = color.Opaque
-
+	m := allColors(true)
 	var keys []string
 	for k := range m {
 		keys = append(keys, k)
@@ -182,12 +197,12 @@ func TestInverse(t *testing.T) {
 	for _, ss := range keys {
 		s := ss
 		t.Run(s, func(t *testing.T) {
-			testInverse(t, s, FromColor(m[s]))
+			testInverse(t, FromColor(m[s]))
 		})
 	}
 }
 
-func testInverse(t *testing.T, name string, exp Color) {
+func testInverse(t *testing.T, exp Color) {
 	t.Helper()
 	tests := []func() string{
 		func() string {
@@ -229,6 +244,22 @@ func testInverse(t *testing.T, name string, exp Color) {
 		t.Logf("%c: %q", verb, s)
 		check(t, s, exp)
 	}
+}
+
+func allColors(opaque bool) map[string]color.Color {
+	z := MapString()
+	m := make(map[string]color.Color)
+	for k, v := range z {
+		m["named/"+k] = v
+	}
+	// additional tests
+	m["std/black"] = color.Black
+	m["std/white"] = color.White
+	m["std/transparent"] = color.Transparent
+	if opaque {
+		m["std/opaque"] = color.Opaque
+	}
+	return m
 }
 
 func check(t *testing.T, s string, exp Color) {
