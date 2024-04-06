@@ -282,6 +282,16 @@ func (Pflag) Type() string {
 	return "color"
 }
 
+// Is returns true when a, b are equivalent.
+func Is(a, b color.Color) bool {
+	i := color.RGBAModel.Convert(a).(color.RGBA)
+	j := color.RGBAModel.Convert(b).(color.RGBA)
+	return i.R == j.R &&
+		i.G == j.G &&
+		i.B == j.B &&
+		i.A == j.A
+}
+
 // Error is a error.
 type Error string
 

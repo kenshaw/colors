@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"sort"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -243,6 +244,31 @@ func testInverse(t *testing.T, exp Color) {
 		}
 		t.Logf("%c: %q", verb, s)
 		check(t, s, exp)
+	}
+}
+
+func TestIs(t *testing.T) {
+	tests := []struct {
+		a, b color.Color
+		exp  bool
+	}{
+		{Transparent, color.Transparent, true},
+		{Black, color.Black, true},
+		{White, color.Transparent, false},
+		{color.RGBA{0, 0, 0, 0}, color.Transparent, true},
+		{color.Opaque, color.Transparent, false},
+		{color.Opaque, color.White, true},
+		{color.Opaque, color.Black, false},
+		{Blue, color.RGBA{0, 0, 255, 255}, true},
+	}
+	for i, test := range tests {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			v := Is(test.a, test.b)
+			t.Logf("%t", v)
+			if v != test.exp {
+				t.Errorf("expected %t, got: %t", test.exp, v)
+			}
+		})
 	}
 }
 
