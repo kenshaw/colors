@@ -88,7 +88,7 @@ func TestParse(t *testing.T) {
 	}
 	sort.Strings(keys)
 	for _, key := range keys {
-		c := color.RGBAModel.Convert(m[key]).(color.RGBA)
+		c := color.NRGBAModel.Convert(m[key]).(color.NRGBA)
 		v := []string{
 			key[strings.LastIndexByte(key, '/')+1:],
 			fmt.Sprintf("rgba( %d, %d, %d, %d )", c.R, c.G, c.B, c.A),

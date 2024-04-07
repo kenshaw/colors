@@ -49,7 +49,7 @@ func FromColor(clr color.Color) Color {
 	if c, ok := clr.(Color); ok {
 		return c
 	}
-	c := color.RGBAModel.Convert(clr).(color.RGBA)
+	c := color.NRGBAModel.Convert(clr).(color.NRGBA)
 	return New(c.R, c.G, c.B, c.A)
 }
 
@@ -167,7 +167,7 @@ func (c Color) Dark() bool {
 
 // Is returns true when the colors are equivalent.
 func (c Color) Is(clr color.Color) bool {
-	b := color.RGBAModel.Convert(clr).(color.RGBA)
+	b := color.NRGBAModel.Convert(clr).(color.NRGBA)
 	return c.R == b.R && c.G == b.G && c.B == b.B && c.A == b.A
 }
 
@@ -284,8 +284,8 @@ func (Pflag) Type() string {
 
 // Is returns true when a, b are equivalent.
 func Is(a, b color.Color) bool {
-	i := color.RGBAModel.Convert(a).(color.RGBA)
-	j := color.RGBAModel.Convert(b).(color.RGBA)
+	i := color.NRGBAModel.Convert(a).(color.NRGBA)
+	j := color.NRGBAModel.Convert(b).(color.NRGBA)
 	return i.R == j.R &&
 		i.G == j.G &&
 		i.B == j.B &&

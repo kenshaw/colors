@@ -7,7 +7,7 @@ import (
 
 // Register registers an additional color.
 func Register(n NamedColor, clr color.Color) {
-	c := color.RGBAModel.Convert(clr).(color.RGBA)
+	c := color.NRGBAModel.Convert(clr).(color.NRGBA)
 	colors[n] = c
 	lookup[mapKey(c.R, c.G, c.B, c.A)] = n
 }
@@ -214,7 +214,7 @@ func (c NamedColor) Format(f fmt.State, verb rune) {
 // colors contains the named colors defined in the SVG 1.1 spec.
 //
 // Taken from golang.org/x/image/colornames/table.go
-var colors = map[NamedColor]color.RGBA{
+var colors = map[NamedColor]color.NRGBA{
 	Aliceblue:            {0xf0, 0xf8, 0xff, 0xff}, // rgb(240, 248, 255)
 	Antiquewhite:         {0xfa, 0xeb, 0xd7, 0xff}, // rgb(250, 235, 215)
 	Aqua:                 {0x00, 0xff, 0xff, 0xff}, // rgb(0, 255, 255)
