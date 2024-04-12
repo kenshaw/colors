@@ -102,8 +102,7 @@ func TestParse(t *testing.T) {
 			key, c, v,
 		})
 	}
-	for _, tt := range tests {
-		test := tt
+	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			for _, ss := range test.v {
 				s := ss
@@ -160,6 +159,7 @@ func TestBad(t *testing.T) {
 		"rgb(0,0)",
 		"rgb(0,0,a)",
 		"rgb(256,256,256)",
+		"rgb(100,100,100,50)",
 		"rgb(,,)",
 		"rgba()",
 		"rgba(0)",
@@ -168,6 +168,7 @@ func TestBad(t *testing.T) {
 		"rgba(0,0,0,a)",
 		"rgba(,,,)",
 		"rgba(256,256,256,256)",
+		"rgba(100,100,100,)",
 		"hex()",
 		"hex(0)",
 		"hex(0,0)",
@@ -195,10 +196,9 @@ func TestInverse(t *testing.T) {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
-	for _, ss := range keys {
-		s := ss
-		t.Run(s, func(t *testing.T) {
-			testInverse(t, FromColor(m[s]))
+	for _, key := range keys {
+		t.Run(key, func(t *testing.T) {
+			testInverse(t, FromColor(m[key]))
 		})
 	}
 }

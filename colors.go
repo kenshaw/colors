@@ -108,17 +108,17 @@ func FromName(s string) (Color, bool) {
 
 // FromRGB converts a rgb string to a color.
 func FromRGB(s string) (Color, bool) {
-	return fromRE(s, rgbRE, parseDec)
+	return fromRE(s, rgbRE, parseDec, false)
 }
 
 // FromRGBA converts a rgba string to a color.
 func FromRGBA(s string) (Color, bool) {
-	return fromRE(s, rgbaRE, parseDec)
+	return fromRE(s, rgbaRE, parseDec, false)
 }
 
 // FromHex converts a hex string to a color.
 func FromHex(s string) (Color, bool) {
-	return fromRE(s, hexRE, parseHex)
+	return fromRE(s, hexRE, parseHex, true)
 }
 
 // UnmarshalText satisfies the [encoding.TextUnmarshaler] interface.
@@ -307,7 +307,7 @@ const (
 )
 
 // fromRE parses all regexp matches with f.
-func fromRE(s string, re *regexp.Regexp, f func(s string) (uint8, bool)) (Color, bool) {
+func fromRE(s string, re *regexp.Regexp, f func(string) (uint8, bool), lastOptional bool) (Color, bool) {
 	m := re.FindStringSubmatch(s)
 	n := len(m)
 	if n != 4 && n != 5 {
@@ -325,6 +325,8 @@ func fromRE(s string, re *regexp.Regexp, f func(s string) (uint8, bool)) (Color,
 		return Color{}, false
 	}
 	switch {
+	case !lastOptional && n == 5 && m[4] == "":
+		return Color{}, false
 	case n == 5 && m[4] != "":
 		if c.A, ok = f(m[4]); !ok {
 			return Color{}, false
