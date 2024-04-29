@@ -11,7 +11,8 @@ import (
 	"github.com/kenshaw/snaker"
 )
 
-// Color is a color.
+// Color is a color. Effectively the same as [color.NRGBA], but with a
+// [NamedColor].
 type Color struct {
 	R, G, B, A uint8
 	NamedColor NamedColor
@@ -142,10 +143,16 @@ func (c Color) Name() string {
 func (c Color) RGBA() (r, g, b, a uint32) {
 	r = uint32(c.R)
 	r |= r << 8
+	r *= uint32(c.A)
+	r /= 0xff
 	g = uint32(c.G)
 	g |= g << 8
+	g *= uint32(c.A)
+	g /= 0xff
 	b = uint32(c.B)
 	b |= b << 8
+	b *= uint32(c.A)
+	b /= 0xff
 	a = uint32(c.A)
 	a |= a << 8
 	return
