@@ -1,5 +1,5 @@
 module github.com/kenshaw/colors
 
-go 1.22
+go 1.23
 
-require github.com/kenshaw/snaker v0.2.0
+require github.com/kenshaw/snaker v0.4.0
