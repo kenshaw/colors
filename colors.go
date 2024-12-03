@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/kenshaw/snaker"
+	"github.com/kenshaw/colors/strcase"
 )
 
 // Color is a color. Effectively the same as [color.NRGBA], but with a
@@ -100,7 +100,7 @@ func FromWeb(s string) (c Color, ok bool) {
 
 // FromName converts a name to a color.
 func FromName(s string) (Color, bool) {
-	n := strings.ToLower(strings.TrimSpace(snaker.ForceCamelIdentifier(s)))
+	n := strings.ToLower(strings.TrimSpace(strcase.ForceCamelIdentifier(s)))
 	if c, ok := colors[NamedColor(n)]; ok {
 		return ToColor(c.R, c.G, c.B, c.A, n), true
 	}

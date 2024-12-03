@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kenshaw/snaker"
+	"github.com/kenshaw/colors/strcase"
 )
 
 func TestParse(t *testing.T) {
@@ -299,7 +299,7 @@ func check(t *testing.T, s string, exp Color) {
 }
 
 func isNamedColor(s string) bool {
-	name := strings.ToLower(snaker.ForceCamelIdentifier(s))
+	name := strings.ToLower(strcase.ForceCamelIdentifier(s))
 	_, ok := colors[NamedColor(name)]
 	return ok
 }
