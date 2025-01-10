@@ -247,6 +247,11 @@ func (c Color) AsWebShort() string {
 	return fmt.Sprintf("#%02x%02x%02x", c.R, c.G, c.B)
 }
 
+// Type returns the type.
+func (Color) Type() string {
+	return "color"
+}
+
 // Pflag returns a [Pflag] wrapping the color, that can be used with various
 // command-line packages, such as [cobra], and satisfies the [pflag.Value]
 // interface.
