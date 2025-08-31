@@ -5,14 +5,14 @@ import (
 	"image/color"
 )
 
-// Register registers an additional color.
+// Register registers a named color.
 func Register(n NamedColor, clr color.Color) {
 	c := color.NRGBAModel.Convert(clr).(color.NRGBA)
 	colors[n] = c
 	lookup[mapKey(c.R, c.G, c.B, c.A)] = n
 }
 
-// RegisterName registers an additional color.
+// RegisterName registers a named color.
 func RegisterName(s string, clr color.Color) {
 	Register(NamedColor(s), clr)
 }
@@ -198,12 +198,20 @@ func (c NamedColor) RGBA() (r, g, b, a uint32) {
 	return
 }
 
-// Color returns the [Color].
+// Color returns a [Color] for the named color.
 func (c NamedColor) Color() Color {
 	if v, ok := colors[c]; ok {
 		return Color{v.R, v.G, v.B, v.A, c}
 	}
 	return Color{}
+}
+
+// NRGBA returns the [color.NRGBA] for the named color.
+func (c NamedColor) NRGBA() color.NRGBA {
+	if v, ok := colors[c]; ok {
+		return v
+	}
+	return color.NRGBA{}
 }
 
 // Format satisfies the [fmt.Formatter] interface.
