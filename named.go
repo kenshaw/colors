@@ -211,7 +211,22 @@ func (c NamedColor) NRGBA() color.NRGBA {
 	if v, ok := colors[c]; ok {
 		return v
 	}
-	return color.NRGBA{}
+	return color.NRGBAModel.Convert(c).(color.NRGBA)
+}
+
+// CMYK returns the color as a [color.CMYK].
+func (c NamedColor) CMYK() color.CMYK {
+	return color.CMYKModel.Convert(c).(color.CMYK)
+}
+
+// NYcbCrA returns the color as a [color.NYcbCrA].
+func (c NamedColor) NYCbCrA() color.NYCbCrA {
+	return color.NYCbCrAModel.Convert(c).(color.NYCbCrA)
+}
+
+// YCbCr returns the color as a [color.YCbCr].
+func (c NamedColor) YCbCr() color.YCbCr {
+	return color.YCbCrModel.Convert(c).(color.YCbCr)
 }
 
 // Format satisfies the [fmt.Formatter] interface.
