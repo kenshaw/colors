@@ -1,3 +1,7 @@
+// Package colors supports parsing various colors, from named colors to
+// standard web / CSS style definitions.
+//
+// See [Parse] for more information on supported representation formats.
 package colors
 
 import (
@@ -28,7 +32,25 @@ func ToColor(r, g, b, a uint8, name string) Color {
 	return Color{r, g, b, a, NamedColor(name)}
 }
 
-// Parse parses a color.
+// Parse parses a color. Case-insensitive and ignores whitespace.
+//
+// Parses formatting like the following:
+//
+//	Name - a CSS color name (ex: Misty_Rose, red, ...)
+//	#abc - a 3
+//
+// For example, a copy of the named color [MistyRose] will be returned, when
+// passed a string like any the following:
+//
+//	"Misty_Rose"
+//	"mistyrose"
+//	"MISTY ROSE"
+//	"rgb(255, 228, 225)"
+//	"rgba(255, 228, 225, 255)"
+//	"hex(ff, e4, e1)"
+//	"hex(ff, e4, e1, ff)"
+//	"#ffe4e1"
+//	"#ffe4e1ff"
 func Parse(s string) (Color, error) {
 	s = strings.ToLower(strings.TrimSpace(s))
 	for _, f := range []func(string) (Color, bool){
